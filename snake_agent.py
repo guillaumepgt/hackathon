@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 from collections import deque
 import requests
+import random
 
 from players.shared_api_client import GameAPIClient
 
@@ -11,7 +12,7 @@ TOKEN = "a729a0ed3b8f5ca37e5b8f95a9fa61d0"
 
 GAME_NAME = "Snake"
 TERMINAL = {"win", "lose", "tie", "max_steps"}
-LOG_EVERY = 0  # 0 = aucun log de step (plus rapide)
+RETRYABLE_STATUS = {408, 429, 500, 502, 503, 504}
 
 DIRS = {
     "up": (-1, 0),
@@ -26,13 +27,17 @@ class TooManyRequestsError(Exception):
     pass
 
 
-def api_call(fn, *args, retries: int = 4, base_sleep: float = 0.2, **kwargs):
+class RetryableAPIError(Exception):
+    pass
+
+
+def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.25, **kwargs):
     for attempt in range(retries):
         try:
             return fn(*args, **kwargs)
         except requests.exceptions.HTTPError as exc:
             status = exc.response.status_code if exc.response is not None else None
-            if status != 429:
+            if status not in RETRYABLE_STATUS:
                 raise
 
             retry_after = 0.0
@@ -44,10 +49,12 @@ def api_call(fn, *args, retries: int = 4, base_sleep: float = 0.2, **kwargs):
                     except ValueError:
                         retry_after = 0.0
 
-            wait_s = min(max(retry_after, base_sleep * (2 ** attempt)), 1.0)
+            # backoff + petit jitter
+            wait_s = min(max(retry_after, base_sleep * (2 ** attempt)), 3.0)
+            wait_s += random.uniform(0.0, 0.08)
             time.sleep(wait_s)
 
-    raise TooManyRequestsError(f"429 persistant sur {fn.__name__}")
+    raise RetryableAPIError(f"Erreur persistante sur {fn.__name__}")
 
 
 def norm_pos(p):
@@ -242,6 +249,25 @@ def infer_action_list_from_state(state: dict) -> dict:
         # Snake interdit généralement le demi-tour
         allowed.discard(OPPOSITE[direction])
     return {a: f"move {a}" for a in allowed}
+
+
+def start_fresh_session(client: GameAPIClient, game_id: int, previous_session_id: int | None) -> int:
+    """
+    Démarre une session et évite de réutiliser l'ancienne si le serveur est en retard.
+    """
+    for _ in range(10):
+        start = api_call(client.start_game, game_id)
+        sid = int(start["gamesessionid"])
+
+        if previous_session_id is None or sid != previous_session_id:
+            return sid
+
+        # même id renvoyé : attendre un tick puis retenter
+        time.sleep(1.05)
+
+    # fallback
+    start = api_call(client.start_game, game_id)
+    return int(start["gamesessionid"])
 
 
 def main():
