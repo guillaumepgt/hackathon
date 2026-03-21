@@ -11,6 +11,7 @@ TOKEN = "a729a0ed3b8f5ca37e5b8f95a9fa61d0"
 
 GAME_NAME = "Snake"
 TERMINAL = {"win", "lose", "tie", "max_steps"}
+LOG_EVERY = 10  # log 1 fois tous les 10 steps
 
 DIRS = {
     "up": (-1, 0),
@@ -70,7 +71,8 @@ def in_bounds(r, c, n):
     return 0 <= r < n and 0 <= c < n
 
 
-def bfs_first_move(head, target, blocked, n):
+def bfs_path(head, target, blocked, n):
+    """Retourne la liste complète d'actions jusqu'à target, ou None."""
     if target is None:
         return None
 
@@ -82,6 +84,7 @@ def bfs_first_move(head, target, blocked, n):
         cur = q.popleft()
         if cur == target:
             break
+
         for a, (dr, dc) in DIRS.items():
             nxt = (cur[0] + dr, cur[1] + dc)
             if not in_bounds(nxt[0], nxt[1], n):
@@ -97,11 +100,14 @@ def bfs_first_move(head, target, blocked, n):
     if target not in parent:
         return None
 
-    # remonter jusqu'au 1er pas
+    # reconstruction du chemin
+    actions = []
     cur = target
-    while parent[cur] is not None and parent[cur] != head:
+    while parent[cur] is not None:
+        actions.append(parent_move[cur])
         cur = parent[cur]
-    return parent_move[cur]
+    actions.reverse()
+    return actions
 
 
 def safe_actions(head, body_set, n, allowed):
@@ -114,7 +120,7 @@ def safe_actions(head, body_set, n, allowed):
     return out
 
 
-def choose_action(state: dict, action_list: dict) -> str:
+def choose_action(state: dict, action_list: dict, planner: dict | None = None) -> str:
     allowed = [a for a in (action_list or {}).keys() if a in DIRS]
     if not allowed:
         raise RuntimeError("Aucune action valide reçue.")
@@ -130,16 +136,30 @@ def choose_action(state: dict, action_list: dict) -> str:
     if direction in OPPOSITE and OPPOSITE[direction] in allowed and len(allowed) > 1:
         allowed = [a for a in allowed if a != OPPOSITE[direction]]
 
-    # chemin court vers la nourriture
-    move = bfs_first_move(head, food, body_set, n)
-    if move in allowed:
-        return move
+    # --- cache de plan ---
+    if planner is not None:
+        cached_food = planner.get("food")
+        cached_path = planner.get("path")
 
-    # fallback: action sûre
+        if (
+            cached_food == food
+            and isinstance(cached_path, deque)
+            and len(cached_path) > 0
+            and cached_path[0] in allowed
+        ):
+            return cached_path.popleft()
+
+        new_path = bfs_path(head, food, body_set, n)
+        if new_path:
+            planner["food"] = food
+            planner["path"] = deque(new_path)
+            if planner["path"] and planner["path"][0] in allowed:
+                return planner["path"].popleft()
+
+    # fallback
     safe = safe_actions(head, body_set, n, allowed)
     if safe:
         return safe[0]
-
     return allowed[0]
 
 
@@ -153,8 +173,9 @@ def get_game_id(client: GameAPIClient) -> int:
 
 def play_one_session(client: GameAPIClient, session_id: int) -> str:
     step = 0
-    payload = api_call(client.get_state, session_id)  # une seule fois au débutn
+    payload = api_call(client.get_state, session_id)
     t0 = time.perf_counter()
+    planner = {"food": None, "path": deque()}
 
     while True:
         status = payload.get("status", "continue")
@@ -170,11 +191,15 @@ def play_one_session(client: GameAPIClient, session_id: int) -> str:
 
         snake, food, direction, _ = parse_state(state)
         head_before = snake[0] if snake else None
-        action = choose_action(state, action_list)
+        action = choose_action(state, action_list, planner)
 
-        print(f"[session={session_id}] step={step} head={head_before} dir={direction} food={food} action={action}")
+        if step % LOG_EVERY == 0:
+            print(
+                f"[session={session_id}] step={step} "
+                f"head={head_before} dir={direction} food={food} action={action}"
+            )
 
-        result = api_call(client.act, session_id, action)  # 1 req = 1 move
+        result = api_call(client.act, session_id, action)
         step += 1
 
         r_status = result.get("status", "continue")
@@ -183,11 +208,9 @@ def play_one_session(client: GameAPIClient, session_id: int) -> str:
             print(f"[session={session_id}] fin -> {r_status} | moves/s={step/dt:.2f}")
             return r_status
 
-        # Si act renvoie déjà l'état suivant => vitesse max
         if isinstance(result, dict) and ("state" in result and "action_list" in result):
             payload = result
         else:
-            # fallback: tu tomberas plutôt vers ~0.5 move/s
             payload = api_call(client.get_state, session_id)
 
 
