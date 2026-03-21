@@ -15,7 +15,7 @@ from players.shared_api_client import (
     GameAPIClient,
 )
 
-DEFAULT_SERVER_URL = "http://localhost:15001"
+DEFAULT_SERVER_URL = "https://24hcode2026.plaiades.fr/"
 AUTO_REFRESH_INTERVALS = ("2s", "5s")
 TERMINAL_STATUSES = {"win", "lose", "tie", "max_steps"}
 INACTIVE_STATUSES = TERMINAL_STATUSES | {"cancelled", "inactive", "unavailable"}
