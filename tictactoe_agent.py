@@ -96,13 +96,25 @@ def choose_action(state: dict, action_list: dict) -> str:
 
 
 TERMINAL = {"win", "lose", "tie", "max_steps"}
-RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+RETRYABLE_STATUS = {408, 429, 500, 502, 503, 504}
+NETWORK_EXCEPTIONS = (
+    requests.exceptions.Timeout,
+    requests.exceptions.ReadTimeout,
+    requests.exceptions.ConnectionError,
+    requests.exceptions.ChunkedEncodingError,
+)
 
 
-def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.1, **kwargs):
+def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.25, **kwargs):
     for attempt in range(retries):
         try:
             return fn(*args, **kwargs)
+
+        except NETWORK_EXCEPTIONS as exc:
+            wait_s = min(base_sleep * (2 ** attempt), 3.0)
+            print(f"Réseau/timeout sur {fn.__name__}: {exc} -> retry {wait_s:.2f}s")
+            time.sleep(wait_s)
+
         except requests.exceptions.HTTPError as exc:
             status = exc.response.status_code if exc.response is not None else None
             if status not in RETRYABLE_STATUS:
@@ -110,14 +122,15 @@ def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.1, **kwargs):
 
             retry_after = 0.0
             if exc.response is not None:
-                h = exc.response.headers.get("Retry-After")
-                if h:
+                ra = exc.response.headers.get("Retry-After")
+                if ra:
                     try:
-                        retry_after = float(h)
+                        retry_after = float(ra)
                     except ValueError:
                         retry_after = 0.0
 
             wait_s = min(max(retry_after, base_sleep * (2 ** attempt)), 3.0)
+            print(f"{status} sur {fn.__name__} -> retry {wait_s:.2f}s")
             time.sleep(wait_s)
 
     raise RuntimeError(f"Erreur persistante sur {fn.__name__}")
