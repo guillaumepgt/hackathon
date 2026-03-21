@@ -135,7 +135,7 @@ if __name__ == "__main__":
     TOKEN = "a729a0ed3b8f5ca37e5b8f95a9fa61d0"
     URL = "https://24hcode2026.plaiades.fr"
 
-    client = GameAPIClient(server_url=URL, token=TOKEN, max_calls_per_second=0.9)
+    client = GameAPIClient(server_url=URL, token=TOKEN, max_calls_per_second=0.95)
     bot = RushHourSolver(client)
 
     compteur = 1

@@ -5,18 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="06465790-15f3-46f9-9939-19d7932024a1" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/jeu10.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jeu3.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jeu4.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jeu5.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jeu6.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jeu7.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jeu8.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jeu9.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/players/shared_api_client.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/train_ai_jeu5.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/train_jeu10.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/train_jeu5.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/score.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jeu4.py" beforeDir="false" afterPath="$PROJECT_DIR$/jeu4.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jeu6.py" beforeDir="false" afterPath="$PROJECT_DIR$/jeu6.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jeu7.py" beforeDir="false" afterPath="$PROJECT_DIR$/jeu7.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jeu8.py" beforeDir="false" afterPath="$PROJECT_DIR$/jeu8.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/traffic_ppo_model.zip" beforeDir="false" afterPath="$PROJECT_DIR$/models/traffic_ppo_model.zip" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/traffic_ppo_norm.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/models/traffic_ppo_norm.pkl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_ai_jeu5.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_ai_jeu5.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_jeu5.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_jeu5.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,6 +58,11 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "WebServerToolWindowPanel.toolwindow.highlight.mappings": "true",
+    "WebServerToolWindowPanel.toolwindow.highlight.symlinks": "true",
+    "WebServerToolWindowPanel.toolwindow.show.date": "false",
+    "WebServerToolWindowPanel.toolwindow.show.permissions": "false",
+    "WebServerToolWindowPanel.toolwindow.show.size": "false",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
     "git-widget-placeholder": "jeu4",
     "junie.onboarding.icon.badge.shown": "true",
@@ -102,7 +105,7 @@
       <option name="presentableId" value="Default" />
       <updated>1774086941746</updated>
       <workItem from="1774086942768" duration="174000" />
-      <workItem from="1774087251028" duration="23986000" />
+      <workItem from="1774087251028" duration="34893000" />
     </task>
     <servers />
   </component>

@@ -1,5 +1,5 @@
 import time
-from collections import deque
+import heapq
 from players.shared_api_client import GameAPIClient
 
 class KeyDoorSolver:
@@ -8,66 +8,79 @@ class KeyDoorSolver:
         self.game_id = 8
 
     def play_game(self):
-        print("\n🔑 Démarrage du Labyrinthe à Clé (Jeu 8)...")
         session = self.api.start_game(self.game_id)
         session_id = session["gamesessionid"]
+        state = session.get("state") or self.api.get_state(session_id)["state"]
 
-        etat_brut = self.api.get_state(session_id)
-        state = etat_brut["state"]
-
-        print("🧠 Calcul du chemin optimal...")
-        actions = self.solve_bfs(state)
-
+        actions = self.solve_astar(state)
         if not actions:
-            print("❌ Impossible de trouver la sortie !")
             self.api.stop_game(session_id)
             return False
 
-        print(f"✅ Chemin trouvé ({len(actions)} pas).")
-
         for action in actions:
             res = self.api.act(session_id, action)
-            if res.get("status") == "win":
-                print("🏆 VICTOIRE ! +9 Points !")
-                return True
-            elif res.get("status") == "lose":
-                print("💀 Défaite.")
+            status = res.get("status")
+            if status == "win": return True
+            if status == "lose":
                 self.api.stop_game(session_id)
                 return False
         return False
 
-    def solve_bfs(self, state):
+    def solve_astar(self, state):
         grid = state["grid"]
-        # Format API : [x, y]
-        start_pos = (state["player_pos"][0], state["player_pos"][1], state["has_key"])
+        rows, cols = len(grid), len(grid[0])
+        sx, sy = state["player_pos"]
 
-        queue = deque([(start_pos, [])])
-        visited = {start_pos}
+        key_pos = exit_pos = None
+        for y, row in enumerate(grid):
+            for x, cell in enumerate(row):
+                if cell == 'K': key_pos = (x, y)
+                if cell == 'E': exit_pos = (x, y)
 
-        moves = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
+        if not exit_pos:
+            return None
 
-        while queue:
-            (x, y, has_key), path = queue.popleft()
+        def heuristic(x, y, has_key):
+            if not has_key and key_pos:
+                return (abs(x - key_pos[0]) + abs(y - key_pos[1]) +
+                        abs(key_pos[0] - exit_pos[0]) + abs(key_pos[1] - exit_pos[1]))
+            return abs(x - exit_pos[0]) + abs(y - exit_pos[1])
 
-            # On vérifie si on est sur la case de sortie 'E'
+        start = (sx, sy, state["has_key"])
+        heap = [(heuristic(sx, sy, state["has_key"]), 0, start)]
+        parent = {start: None}
+        g_score = {start: 0}
+        moves = [("up", 0, -1), ("down", 0, 1), ("left", -1, 0), ("right", 1, 0)]
+
+        while heap:
+            f, g, (x, y, has_key) = heapq.heappop(heap)
+
             if grid[y][x] == 'E':
+                path = []
+                cur = (x, y, has_key)
+                while parent[cur] is not None:
+                    prev, action = parent[cur]
+                    path.append(action)
+                    cur = prev
+                path.reverse()
                 return path
 
-            for name, (dx, dy) in moves.items():
+            if g > g_score.get((x, y, has_key), float('inf')):
+                continue
+
+            for name, dx, dy in moves:
                 nx, ny = x + dx, y + dy
-
-                if 0 <= ny < len(grid) and 0 <= nx < len(grid[0]):
+                if 0 <= ny < rows and 0 <= nx < cols:
                     cell = grid[ny][nx]
-
-                    if cell == '#': continue # Mur
-                    if cell == 'D' and not has_key: continue # Porte fermée
-
-                    n_key = has_key or (cell == 'K')
-                    next_state = (nx, ny, n_key)
-
-                    if next_state not in visited:
-                        visited.add(next_state)
-                        queue.append((next_state, path + [name]))
+                    if cell == '#' or (cell == 'D' and not has_key):
+                        continue
+                    nk = has_key or (cell == 'K')
+                    ns = (nx, ny, nk)
+                    ng = g + 1
+                    if ng < g_score.get(ns, float('inf')):
+                        g_score[ns] = ng
+                        parent[ns] = ((x, y, has_key), name)
+                        heapq.heappush(heap, (ng + heuristic(nx, ny, nk), ng, ns))
         return None
 
 if __name__ == "__main__":

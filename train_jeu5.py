@@ -33,7 +33,7 @@ if __name__ == "__main__":
     )
     start_time = time.time()
 
-    model.learn(total_timesteps=1500000)
+    model.learn(total_timesteps=3000000)
 
     elapsed = time.time() - start_time
     print(f"{elapsed/60:.1f} minutes")
