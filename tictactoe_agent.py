@@ -13,7 +13,7 @@ REUSE_SESSION_ID = None   # mettre None pour démarrer une nouvelle session
 
 def winner(board: list[list[str]]) -> str | None:
     lines = []
-    lines.extend(board)  # rows
+    lines.extend(board)  
     lines.extend([[board[0][c], board[1][c], board[2][c]] for c in range(3)])  # cols
     lines.append([board[0][0], board[1][1], board[2][2]])
     lines.append([board[0][2], board[1][1], board[2][0]])
@@ -98,7 +98,7 @@ def choose_action(state: dict, action_list: dict) -> str:
 TERMINAL = {"win", "lose", "tie", "max_steps"}
 
 
-def api_call(fn, *args, retries: int = 8, base_sleep: float = 1.0, **kwargs):
+def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.25, **kwargs):
     for attempt in range(retries):
         try:
             return fn(*args, **kwargs)
@@ -116,8 +116,8 @@ def api_call(fn, *args, retries: int = 8, base_sleep: float = 1.0, **kwargs):
                     except ValueError:
                         retry_after = 0.0
 
-            wait_s = max(retry_after, base_sleep * (2 ** attempt))
-            print(f"429 sur {fn.__name__}, attente {wait_s:.1f}s...")
+            wait_s = min(max(retry_after, base_sleep * (2 ** attempt)), 3.0)
+            print(f"429 sur {fn.__name__}, attente {wait_s:.2f}s...")
             time.sleep(wait_s)
 
     raise RuntimeError(f"429 persistant sur {fn.__name__}")
@@ -132,7 +132,7 @@ def get_tictactoe_id(client: GameAPIClient) -> int:
 
 
 def play_one_session(client: GameAPIClient, session_id: int) -> str:
-    payload = api_call(client.get_state, session_id)  # 1er état
+    payload = api_call(client.get_state, session_id)  # 1er état uniquement
 
     while True:
         state = payload.get("state", {}) or {}
@@ -155,14 +155,13 @@ def play_one_session(client: GameAPIClient, session_id: int) -> str:
             print(f"session={session_id} | action={action}")
             result = api_call(client.act, session_id, action)
 
-            # Réutilise directement la réponse de act si elle contient un état
-            if isinstance(result, dict) and ("state" in result or "status" in result):
+            # Réutilise la réponse act si possible
+            if isinstance(result, dict) and ("state" in result or "action_list" in result or "status" in result):
                 payload = result
             else:
                 payload = api_call(client.get_state, session_id)
         else:
-            # Polling léger seulement quand ce n'est pas notre tour
-            time.sleep(0.95)
+            # Pas de sleep fixe: le client applique déjà la limite 1 req/s
             payload = api_call(client.get_state, session_id)
 
 def main():
