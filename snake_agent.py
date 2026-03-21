@@ -275,8 +275,6 @@ def main():
             max_steps += 1
 
         print(f"Totaux: win={wins}, lose={losses}, tie={ties}, max_steps={max_steps}")
-        # supprimer l'attente inter-partie pour enchaîner au plus vite
-        # time.sleep(1.05) 
 
 
 if __name__ == "__main__":

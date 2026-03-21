@@ -96,15 +96,16 @@ def choose_action(state: dict, action_list: dict) -> str:
 
 
 TERMINAL = {"win", "lose", "tie", "max_steps"}
+RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 
 
-def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.25, **kwargs):
+def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.1, **kwargs):
     for attempt in range(retries):
         try:
             return fn(*args, **kwargs)
         except requests.exceptions.HTTPError as exc:
             status = exc.response.status_code if exc.response is not None else None
-            if status != 429:
+            if status not in RETRYABLE_STATUS:
                 raise
 
             retry_after = 0.0
@@ -117,10 +118,9 @@ def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.25, **kwargs):
                         retry_after = 0.0
 
             wait_s = min(max(retry_after, base_sleep * (2 ** attempt)), 3.0)
-            print(f"429 sur {fn.__name__}, attente {wait_s:.2f}s...")
             time.sleep(wait_s)
 
-    raise RuntimeError(f"429 persistant sur {fn.__name__}")
+    raise RuntimeError(f"Erreur persistante sur {fn.__name__}")
 
 
 def get_tictactoe_id(client: GameAPIClient) -> int:
@@ -152,7 +152,6 @@ def play_one_session(client: GameAPIClient, session_id: int) -> str:
 
         if state.get("current_player") == "X":
             action = choose_action(state, action_list)
-            print(f"session={session_id} | action={action}")
             result = api_call(client.act, session_id, action)
 
             # Réutilise la réponse act si possible
@@ -193,8 +192,6 @@ def main():
         print(f"Totaux: win={wins}, lose={losses}, tie={ties}, max_steps={max_steps}")
 
         session_id = None  # nouvelle partie à chaque tour
-
-    print(f"Résultats: win={wins}, lose={losses}, tie={ties}, max_steps={max_steps}")
 
 if __name__ == "__main__":
     main()
