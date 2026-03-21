@@ -9,7 +9,6 @@ TOKEN = "a729a0ed3b8f5ca37e5b8f95a9fa61d0"
 
 GAME_NAME = "Tic-Tac-Toe"
 REUSE_SESSION_ID = None   # mettre None pour démarrer une nouvelle session
-MAX_MATCHES = 1000          # nombre de parties à enchaîner
 
 
 def winner(board: list[list[str]]) -> str | None:
@@ -173,13 +172,15 @@ def main():
     game_id = get_tictactoe_id(client)
 
     session_id = REUSE_SESSION_ID
-    for i in range(1, MAX_MATCHES + 1):
+    i = 0
+    while True:
+        i += 1
         if session_id is None:
             start = api_call(client.start_game, game_id)
             session_id = int(start["gamesessionid"])
 
         status = play_one_session(client, session_id)
-        print(f"[{i}/{MAX_MATCHES}] session={session_id} -> {status}")
+        print(f"[{i}] session={session_id} -> {status}")
 
         if status == "win":
             wins += 1
@@ -190,8 +191,9 @@ def main():
         else:
             max_steps += 1
 
-        session_id = None
-        # pas de sleep fixe ici
+        print(f"Totaux: win={wins}, lose={losses}, tie={ties}, max_steps={max_steps}")
+
+        session_id = None  # nouvelle partie à chaque tour
 
     print(f"Résultats: win={wins}, lose={losses}, tie={ties}, max_steps={max_steps}")
 
