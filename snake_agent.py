@@ -11,7 +11,7 @@ TOKEN = "a729a0ed3b8f5ca37e5b8f95a9fa61d0"
 
 GAME_NAME = "Snake"
 TERMINAL = {"win", "lose", "tie", "max_steps"}
-LOG_EVERY = 10  # log 1 fois tous les 10 steps
+LOG_EVERY = 25  # moins de logs = moins d'overhead
 
 DIRS = {
     "up": (-1, 0),
@@ -22,7 +22,7 @@ DIRS = {
 OPPOSITE = {"up": "down", "down": "up", "left": "right", "right": "left"}
 
 
-def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.1, **kwargs):
+def api_call(fn, *args, retries: int = 6, base_sleep: float = 0.25, **kwargs):
     for attempt in range(retries):
         try:
             return fn(*args, **kwargs)
@@ -30,6 +30,7 @@ def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.1, **kwargs):
             status = exc.response.status_code if exc.response is not None else None
             if status != 429:
                 raise
+
             retry_after = 0.0
             if exc.response is not None:
                 h = exc.response.headers.get("Retry-After")
@@ -37,10 +38,13 @@ def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.1, **kwargs):
                     try:
                         retry_after = float(h)
                     except ValueError:
-                        pass
-            wait_s = max(retry_after, base_sleep * (2 ** attempt))
-            print(f"429 sur {fn.__name__}, attente {wait_s:.1f}s...")
+                        retry_after = 0.0
+
+            # backoff borné pour éviter les attentes énormes
+            wait_s = min(max(retry_after, base_sleep * (2 ** attempt)), 2.0)
+            print(f"429 sur {fn.__name__}, attente {wait_s:.2f}s...")
             time.sleep(wait_s)
+
     raise RuntimeError(f"429 persistant sur {fn.__name__}")
 
 
@@ -184,20 +188,19 @@ def play_one_session(client: GameAPIClient, session_id: int) -> str:
             print(f"[session={session_id}] fin -> {status} | moves/s={step/dt:.2f}")
             return status
 
-        action_list = payload.get("action_list") or {}
         state = payload.get("state", {}) or {}
+        action_list = payload.get("action_list") or {}
         if not action_list:
-            return "max_steps"
+            action_list = infer_action_list_from_state(state)
 
         snake, food, direction, _ = parse_state(state)
-        head_before = snake[0] if snake else None
+        if not snake:
+            return "max_steps"
+
         action = choose_action(state, action_list, planner)
 
         if step % LOG_EVERY == 0:
-            print(
-                f"[session={session_id}] step={step} "
-                f"head={head_before} dir={direction} food={food} action={action}"
-            )
+            print(f"[session={session_id}] step={step} head={snake[0]} dir={direction} food={food} action={action}")
 
         result = api_call(client.act, session_id, action)
         step += 1
@@ -208,8 +211,13 @@ def play_one_session(client: GameAPIClient, session_id: int) -> str:
             print(f"[session={session_id}] fin -> {r_status} | moves/s={step/dt:.2f}")
             return r_status
 
-        if isinstance(result, dict) and ("state" in result and "action_list" in result):
-            payload = result
+        # optimisation: réutiliser act() même sans action_list
+        if isinstance(result, dict) and "state" in result:
+            payload = {
+                "status": result.get("status", "continue"),
+                "state": result.get("state") or {},
+                "action_list": result.get("action_list") or infer_action_list_from_state(result.get("state") or {}),
+            }
         else:
             payload = api_call(client.get_state, session_id)
 
