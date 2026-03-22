@@ -1,0 +1,221 @@
+/* ==========================================================================
+   STYLE.CSS - Version Harmonisée avec styleApp.css
+   Mise en page : Grille 2x5 (Héritée)
+   Design : Thème sombre, Orbitron, Cyan (Harmonisé avec les points)
+   ========================================================================== */
+
+/* --- Importation des Polices (depuis styleApp.css) --- */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Poppins:wght@300;400;500;700&display=swap');
+
+/* --- Variables Globales (Harmonisées avec styleApp.css) --- */
+:root {
+    --bg-dark: #0a0c10;          /* Fond principal sombre */
+    --bg-panel: #161b22;         /* Fond des cartes */
+    --brd-color: #30363d;        /* Bordures subtiles */
+    --text-main: #c9d1d9;        /* Texte principal Poppins */
+    --text-muted: #8b949e;       /* Texte secondaire */
+    
+    /* MODIFICATION : Le Magenta est remplacé par le Cyan pour l'accentuation principale */
+    --accent-main: #00d4ff;      /* Anciennement Magenta, maintenant Cyan pour néons et bordures */
+    --accent-cyan: #00d4ff;      /* Couleur spécifique points (inchangée) */
+    
+    --font-tech: 'Orbitron', sans-serif;
+    --font-body: 'Poppins', sans-serif;
+    
+    --grid-gap: 20px;            /* Espacement grille hérité */
+}
+
+/* --- Reset & Base (Harmonisé) --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    padding: 60px 20px;
+    line-height: 1.6;
+    /* Petit dégradé radial immersif */
+    background: radial-gradient(circle at center, #11151c 0%, var(--bg-dark) 100%);
+    background-attachment: fixed;
+}
+
+/* --- Header (Adapté au Design Orbitron) --- */
+header {
+    text-align: center;
+    margin-bottom: 70px;
+}
+
+header h1 {
+    font-family: var(--font-tech); /* Police Orbitron */
+    font-size: 3rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: white;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+header p {
+    color: var(--text-muted);
+    margin-top: 10px;
+    font-weight: 300;
+    font-size: 1.1rem;
+}
+
+/* ==========================================================================
+   MISE EN PAGE DE LA GRILLE (Héritée de l'ancien style.css)
+   ========================================================================== */
+.game-grid {
+    display: grid;
+    /* Structure 2 lignes de 5 jeux (repeat(5, 1fr)) */
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--grid-gap);
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+/* ==========================================================================
+   DESIGN DES CARTES (Hérité du Design styleApp.css)
+   ========================================================================== */
+.game-card {
+    display: block;
+    text-decoration: none;
+    color: white;
+    background-color: var(--bg-panel); /* Fond de carte sombre */
+    
+    /* Arrondi et bordure finesse (depuis styleApp) */
+    border-radius: 6px; 
+    border: 1px solid var(--brd-color);
+    
+    overflow: hidden;
+    position: relative;
+    
+    /* Aspect carré hérité */
+    aspect-ratio: 1 / 1; 
+
+    /* Traitement de l'image de fond (Hérité + Assombrissement) */
+    background-image: 
+        linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.9)), 
+        var(--img);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    /* Transition fluide unifiée */
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+/* ÉTAT AU SURVOL (is-hovered ajouté par JS) */
+.game-card.is-hovered {
+    /* Mouvement léger hérité */
+    transform: scale(1.04) translateY(-3px); 
+    
+    /* MODIFICATION : EFFET NÉON CYAN (Même bleu que les points) */
+    border-color: var(--accent-main);
+    box-shadow: 0 0 25px 3px rgba(0, 212, 255, 0.4); /* Utilisation du Cyan avec opacité */
+    
+    /* Fond image légèrement plus visible au survol */
+    background-image: 
+        linear-gradient(rgba(22, 27, 34, 0.6), rgba(10, 12, 16, 0.95)), 
+        var(--img);
+    z-index: 10;
+}
+
+/* --- Contenu de la Carte --- */
+.card-inner {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Aligné en haut, points en bas */
+    padding-top: 35px;
+    align-items: center;
+    text-align: center;
+}
+
+/* --- Titre du Jeu (orbitron, coloré styleApp) --- */
+.game-title {
+    font-family: var(--font-tech); /* Orbitron */
+    font-size: 1.3rem;
+    font-weight: 500;
+    line-height: 1.1;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.9);
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.game-card.is-hovered .game-title {
+    color: white;
+    transform: translateY(-3px);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* --- Méta-données (Animation héritée) --- */
+.game-meta {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    width: 100%;
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: var(--text-main);
+    
+    /* Masqué par défaut (hérité) */
+    opacity: 0; 
+    transform: translateY(15px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Révélation au survol (héritée) */
+.game-card.is-hovered .game-meta {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.desc {
+    margin-bottom: 20px;
+    line-height: 1.4;
+    text-align: center;
+    color: #b1bac4; /* Gris plus clair */
+}
+
+/* --- Bloc Points (orbitron, cyan styleApp) --- */
+.points {
+    margin-top: auto; /* Pousse en bas (hérité) */
+    margin-bottom: 10px;
+    width: 100%;
+    padding-top: 15px;
+    /* Ligne de séparation finesse (depuis styleApp) */
+    border-top: 1px solid var(--brd-color);
+    
+    font-family: var(--font-tech); /* Orbitron pour scores */
+    font-size: 0.75rem;
+    color: var(--accent-cyan); /* Cyan d'accentuation */
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.points p {
+    margin-bottom: 2px;
+}
+
+/* ==========================================================================
+   RESPONSIVE (Hérité de style.css)
+   ========================================================================== */
+@media (max-width: 1100px) {
+    .game-grid { grid-template-columns: repeat(3, 1fr); }
+    header h1 { font-size: 2.5rem; }
+}
+
+@media (max-width: 700px) {
+    .game-grid { grid-template-columns: repeat(2, 1fr); }
+    .game-title { font-size: 1.1rem; }
+}
