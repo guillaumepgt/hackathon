@@ -5,16 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="06465790-15f3-46f9-9939-19d7932024a1" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/score.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/IHM/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/IHM/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hackathon_rl_envs/Key_DoorMaze.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hackathon_rl_envs/lava_key_DoorMaze.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hackathon_rl_envs/lava_maze.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hackathon_rl_envs/rushhour.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/jeu2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/train_ia_jeu7.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/train_ia_jeu8.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/train_jeu4.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/train_jeu7.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/train_jeu8.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jeu4.py" beforeDir="false" afterPath="$PROJECT_DIR$/jeu4.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jeu6.py" beforeDir="false" afterPath="$PROJECT_DIR$/jeu6.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jeu7.py" beforeDir="false" afterPath="$PROJECT_DIR$/jeu7.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jeu8.py" beforeDir="false" afterPath="$PROJECT_DIR$/jeu8.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/traffic_ppo_model.zip" beforeDir="false" afterPath="$PROJECT_DIR$/models/traffic_ppo_model.zip" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/traffic_ppo_norm.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/models/traffic_ppo_norm.pkl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train_ai_jeu5.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_ai_jeu5.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train_jeu5.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_jeu5.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,6 +30,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Dockerfile" />
         <option value="Python Script" />
       </list>
     </option>
@@ -58,6 +65,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "WebServerToolWindowPanel.toolwindow.highlight.mappings": "true",
     "WebServerToolWindowPanel.toolwindow.highlight.symlinks": "true",
     "WebServerToolWindowPanel.toolwindow.show.date": "false",
@@ -87,6 +95,8 @@
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/IHM" />
+      <recent name="$PROJECT_DIR$/IHM/src" />
     </key>
   </component>
   <component name="SharedIndexes">
@@ -105,7 +115,7 @@
       <option name="presentableId" value="Default" />
       <updated>1774086941746</updated>
       <workItem from="1774086942768" duration="174000" />
-      <workItem from="1774087251028" duration="34893000" />
+      <workItem from="1774087251028" duration="44973000" />
     </task>
     <servers />
   </component>

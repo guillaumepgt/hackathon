@@ -16,7 +16,7 @@ class LavaMazeSolver:
 
         actions = self.solve_bfs(state)
 
-        if not actions or len(actions) > 7:
+        if not actions or len(actions) > 10:
             self.api.stop_game(session_id)
             return False
 

@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  arcade:
+    build: .
+    container_name: hackathon_arcade
+    ports:
+      - "5173:5173"
+      - "5174:5174"
+    volumes:
+      # Synchronise ton dossier local avec le conteneur (Hot-Reload)
+      - .:/app
+      # Empêche d'écraser les node_modules du conteneur avec ceux du Mac
+      - /app/node_modules
+    environment:
+      # Force Vite à détecter les changements de fichiers au travers de Docker
+      - CHOKIDAR_USEPOLLING=true
