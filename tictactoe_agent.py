@@ -1,23 +1,24 @@
 from __future__ import annotations
+from players.shared_api_client import GameAPIClient
+import pickle
+from pathlib import Path
+import random
 
 import time
 import requests
-from players.shared_api_client import GameAPIClient
 
 URL = "https://24hcode2026.plaiades.fr/"
 TOKEN = "a729a0ed3b8f5ca37e5b8f95a9fa61d0"
 
 GAME_NAME = "Tic-Tac-Toe"
-REUSE_SESSION_ID = None   # mettre None pour démarrer une nouvelle session
+REUSE_SESSION_ID = None 
 
 
 def winner(board: list[list[str]]) -> str | None:
-    lines = []
-    lines.extend(board)  
-    lines.extend([[board[0][c], board[1][c], board[2][c]] for c in range(3)])  # cols
+    lines = list(board)
+    lines.extend([[board[0][c], board[1][c], board[2][c]] for c in range(3)])
     lines.append([board[0][0], board[1][1], board[2][2]])
     lines.append([board[0][2], board[1][1], board[2][0]])
-
     for line in lines:
         if line[0] and line[0] == line[1] == line[2]:
             return line[0]
@@ -25,7 +26,7 @@ def winner(board: list[list[str]]) -> str | None:
 
 
 def is_full(board: list[list[str]]) -> bool:
-    return all(cell != "" for row in board for cell in row)
+    return all(cell not in ("", None) for row in board for cell in row)
 
 
 def board_after_move(board: list[list[str]], action: str, player: str) -> list[list[str]]:
@@ -37,19 +38,15 @@ def board_after_move(board: list[list[str]], action: str, player: str) -> list[l
 
 def minimax(board: list[list[str]], actions: list[str], player: str) -> tuple[int, str | None]:
     w = winner(board)
-    if w == "X":
-        return 1, None
-    if w == "O":
-        return -1, None
-    if is_full(board) or not actions:
-        return 0, None
+    if w == "X": return 1, None
+    if w == "O": return -1, None
+    if is_full(board) or not actions: return 0, None
 
     if player == "X":
         best_score, best_action = -10, None
         for a in actions:
             nb = board_after_move(board, a, "X")
-            next_actions = [x for x in actions if x != a]
-            score, _ = minimax(nb, next_actions, "O")
+            score, _ = minimax(nb, [x for x in actions if x != a], "O")
             if score > best_score:
                 best_score, best_action = score, a
         return best_score, best_action
@@ -57,42 +54,48 @@ def minimax(board: list[list[str]], actions: list[str], player: str) -> tuple[in
     best_score, best_action = 10, None
     for a in actions:
         nb = board_after_move(board, a, "O")
-        next_actions = [x for x in actions if x != a]
-        score, _ = minimax(nb, next_actions, "X")
+        score, _ = minimax(nb, [x for x in actions if x != a], "X")
         if score < best_score:
             best_score, best_action = score, a
     return best_score, best_action
 
 
+Q_TABLE_PATH = Path("tictactoe_q.pkl")
+Q_TABLE = None
+
+if Q_TABLE_PATH.exists():
+    with Q_TABLE_PATH.open("rb") as f:
+        Q_TABLE = pickle.load(f)
+    print(f"Q-table chargée: {Q_TABLE_PATH}")
+else:
+    print("Q-table introuvable, fallback sur stratégie existante.")
+
+def _state_key_from_server_state(state: dict) -> tuple:
+    board = state.get("board") or [["", "", ""], ["", "", ""], ["", "", ""]]
+    mapping = {"X": 1.0, "O": -1.0, "": 0.0, None: 0.0}
+    flat = [mapping.get(board[r][c], 0.0) for r in range(3) for c in range(3)]
+    turn_flag = 1.0 if state.get("current_player") == "X" else -1.0
+    flat.append(turn_flag)
+    return tuple(float(x) for x in flat)
+
 def choose_action(state: dict, action_list: dict) -> str:
-    server_actions = list((action_list or {}).keys())
-    if not server_actions:
-        raise RuntimeError("Aucune action disponible.")
+    valid = [a for a, ok in (action_list or {}).items() if ok]
+    if not valid:
+        return random.choice(list((action_list or {}).keys()))
 
-    board = state.get("board")
-    if (
-        not isinstance(board, list)
-        or len(board) != 3
-        or any(not isinstance(row, list) or len(row) != 3 for row in board)
-    ):
-        return server_actions[0]
+    # Q-learning si modèle présent
+    if Q_TABLE is not None:
+        s = _state_key_from_server_state(state)
+        qvals = Q_TABLE.get(s)
+        if qvals is not None:
+            # actions serveur attendues type "00","01",...
+            best = max(valid, key=lambda a: qvals[int(a[0]) * 3 + int(a[1])])
+            return best
 
-    # Garde uniquement les actions correspondant à des cases réellement vides
-    board_valid_actions: list[str] = []
-    for a in server_actions:
-        if len(a) == 2 and a[0].isdigit() and a[1].isdigit():
-            r, c = int(a[0]), int(a[1])
-            if 0 <= r < 3 and 0 <= c < 3 and board[r][c] in ("", None):
-                board_valid_actions.append(a)
-
-    actions = board_valid_actions or server_actions
-
-    # Centre seulement si vide ET autorisé
-    if "11" in actions and board[1][1] in ("", None):
+    # fallback: centre puis random
+    if "11" in valid:
         return "11"
-
-    _, best = minimax(board, actions, "X")
-    return best if best in actions else actions[0]
+    return random.choice(valid)
 
 
 TERMINAL = {"win", "lose", "tie", "max_steps"}
@@ -105,14 +108,14 @@ NETWORK_EXCEPTIONS = (
 )
 
 
-def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.25, **kwargs):
+def api_call(fn, *args, retries: int = 20, base_sleep: float = 0.01, **kwargs):
     for attempt in range(retries):
         try:
             return fn(*args, **kwargs)
 
         except NETWORK_EXCEPTIONS as exc:
-            wait_s = min(base_sleep * (2 ** attempt), 3.0)
-            print(f"Réseau/timeout sur {fn.__name__}: {exc} -> retry {wait_s:.2f}s")
+            wait_s = min(base_sleep , 2.0)
+            print(f"Réseau/timeout sur {fn.__name__}: {exc} -> retry dans {wait_s:.2f}s")
             time.sleep(wait_s)
 
         except requests.exceptions.HTTPError as exc:
@@ -122,18 +125,19 @@ def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.25, **kwargs):
 
             retry_after = 0.0
             if exc.response is not None:
-                ra = exc.response.headers.get("Retry-After")
-                if ra:
-                    try:
-                        retry_after = float(ra)
-                    except ValueError:
-                        retry_after = 0.0
+                ra = exc.response.headers.get("Retry-After", "")
+                try:
+                    retry_after = float(ra)
+                except ValueError:
+                    pass
 
-            wait_s = min(max(retry_after, base_sleep * (2 ** attempt)), 3.0)
-            print(f"{status} sur {fn.__name__} -> retry {wait_s:.2f}s")
+            # Prend le max entre ce que le serveur demande et notre backoff,
+            # mais on plafonne à 2s car dépasser ça ne sert à rien pour ce jeu
+            wait_s = min(max(retry_after, base_sleep), 2.0)
+            print(f"HTTP {status} sur {fn.__name__} -> retry dans {wait_s:.2f}s")
             time.sleep(wait_s)
 
-    raise RuntimeError(f"Erreur persistante sur {fn.__name__}")
+    raise RuntimeError(f"Erreur persistante sur {fn.__name__} après {retries} tentatives")
 
 
 def get_tictactoe_id(client: GameAPIClient) -> int:
@@ -145,66 +149,74 @@ def get_tictactoe_id(client: GameAPIClient) -> int:
 
 
 def play_one_session(client: GameAPIClient, session_id: int) -> str:
-    payload = api_call(client.get_state, session_id)  # 1er état uniquement
+    payload = api_call(client.get_state, session_id)
+    t0 = time.perf_counter()  # ← chrono au démarrage
+    moves = 0
 
     while True:
-        state = payload.get("state", {}) or {}
+        state = payload.get("state") or {}
         action_list = payload.get("action_list") or {}
-
         status = payload.get("status")
-        if status in TERMINAL:
-            return status
 
-        winner_value = state.get("winner")
-        if winner_value == "X":
+        if status in TERMINAL:
+            dt = time.perf_counter() - t0
+            print(f"  → Terminal status={status} en {dt:.2f}s ({moves} moves)")
+            return status
+        if state.get("winner") == "X":
+            dt = time.perf_counter() - t0
+            print(f"  → Win en {dt:.2f}s ({moves} moves)")
             return "win"
-        if winner_value == "O":
+        if state.get("winner") == "O":
+            dt = time.perf_counter() - t0
+            print(f"  → Lose en {dt:.2f}s ({moves} moves)")
             return "lose"
         if not action_list:
+            dt = time.perf_counter() - t0
+            print(f"  → Tie en {dt:.2f}s ({moves} moves)")
             return "tie"
 
         if state.get("current_player") == "X":
             action = choose_action(state, action_list)
-            result = api_call(client.act, session_id, action)
-
-            # Réutilise la réponse act si possible
-            if isinstance(result, dict) and ("state" in result or "action_list" in result or "status" in result):
-                payload = result
-            else:
-                payload = api_call(client.get_state, session_id)
+            payload = api_call(client.act, session_id, action)
+            moves += 1
         else:
-            # Pas de sleep fixe: le client applique déjà la limite 1 req/s
             payload = api_call(client.get_state, session_id)
 
+
 def main():
-    client = GameAPIClient(URL, TOKEN, max_calls_per_second=1.0, cleanup_on_exit=False)
+    client = GameAPIClient(URL, TOKEN, max_calls_per_second=10.0, cleanup_on_exit=False)
 
     wins = losses = ties = max_steps = 0
     game_id = get_tictactoe_id(client)
 
     session_id = REUSE_SESSION_ID
     i = 0
+    times = []
+    
     while True:
         i += 1
         if session_id is None:
             start = api_call(client.start_game, game_id)
             session_id = int(start["gamesessionid"])
 
+        t_start = time.perf_counter()
         status = play_one_session(client, session_id)
-        print(f"[{i}] session={session_id} -> {status}")
+        t_elapsed = time.perf_counter() - t_start
+        times.append(t_elapsed)
 
-        if status == "win":
-            wins += 1
-        elif status == "lose":
-            losses += 1
-        elif status == "tie":
-            ties += 1
-        else:
-            max_steps += 1
+        print(f"[{i}] session={session_id} -> {status} | Total: {t_elapsed:.2f}s")
 
+        if status == "win":       wins      += 1
+        elif status == "lose":    losses    += 1
+        elif status == "tie":     ties      += 1
+        else:                     max_steps += 1
+
+        avg_time = sum(times) / len(times) if times else 0
         print(f"Totaux: win={wins}, lose={losses}, tie={ties}, max_steps={max_steps}")
-
+        print(f"Temps moyen: {avg_time:.2f}s/partie | Parties/min: {60/avg_time:.1f}")
+        
         session_id = None  # nouvelle partie à chaque tour
+
 
 if __name__ == "__main__":
     main()
