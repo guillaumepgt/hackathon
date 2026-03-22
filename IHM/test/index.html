@@ -2,90 +2,62 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Hackathon 2026 — All Games Console</title>
+  <title>Hackathon 2026</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .menu-wrap { max-width: 760px; margin: 0 auto; padding: 40px 0; }
+    .subtitle { font-size: 13px; color: var(--muted); margin: 6px 0 32px; }
+    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+    .menu-card {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px 18px; cursor: pointer;
+      transition: all .18s; text-align: left;
+    }
+    .menu-card:hover { border-color: var(--accent); background: #00d4ff08; transform: translateY(-2px); }
+    .gicon { font-size: 26px; margin-bottom: 10px; display: block; }
+    .gnum { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 3px; }
+    .gname { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .gdesc { font-size: 11px; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+    .gpts {
+      font-size: 11px; font-weight: 700; padding: 3px 8px;
+      border-radius: 5px; display: inline-block;
+    }
+  </style>
 </head>
 <body>
-
-<div style="max-width:1100px;margin:0 auto">
-  <h1>◈ Hackathon <span>2026</span> — All Games</h1>
-
-  <div class="layout">
-
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-
-      <div class="card">
-        <div class="card-title">Sélection du jeu</div>
-        <div id="game-list" style="display:flex;flex-direction:column;gap:4px"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Session</div>
-        <div class="status-grid">
-          <div class="stat-box">
-            <div class="stat-label">ID</div>
-            <div class="stat-val" id="s-id">—</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-label">Pas</div>
-            <div class="stat-val" id="s-steps">—</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-label">Statut</div>
-            <div class="stat-val" id="s-status">OFFLINE</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-label">Score</div>
-            <div class="stat-val" id="s-score">—</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Contrôles</div>
-        <div class="btn-row" style="margin-bottom:8px">
-          <button class="btn primary" id="btn-start" onclick="startGame()">▶ Lancer</button>
-          <button class="btn danger"  id="btn-stop"  onclick="stopGame()" disabled>■ Stop</button>
-        </div>
-        <div class="btn-row" style="margin-bottom:12px">
-          <button class="btn" id="btn-auto" onclick="toggleAuto()" disabled>⚡ Auto-play</button>
-        </div>
-        <div class="speed-row" style="margin-bottom:12px">
-          <span style="color:var(--muted);font-size:10px">Vitesse</span>
-          <input type="range" id="speed" min="200" max="2000" step="100" value="1150">
-          <span id="speed-val" style="color:var(--accent);min-width:45px">1150ms</span>
-        </div>
-        <div class="keypad">
-          <div></div>
-          <button class="kbtn" id="k-up"    onclick="act('up')"    disabled>↑</button>
-          <div></div>
-          <button class="kbtn" id="k-left"  onclick="act('left')"  disabled>←</button>
-          <button class="kbtn" id="k-down"  onclick="act('down')"  disabled>↓</button>
-          <button class="kbtn" id="k-right" onclick="act('right')" disabled>→</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Log</div>
-        <div class="log" id="log"></div>
-      </div>
-
-    </div>
-
-    <!-- MAIN -->
-    <div class="main-panel">
-      <div class="screen-card">
-        <div class="screen-wrap">
-          <canvas id="c" width="500" height="500"></canvas>
-        </div>
-        <div class="legend" id="legend"></div>
-      </div>
-    </div>
-
-  </div>
+<div class="menu-wrap">
+  <h1>◈ Hackathon <span>2026</span></h1>
+  <p class="subtitle">Sélectionne un jeu pour commencer</p>
+  <div class="menu-grid" id="grid"></div>
 </div>
+<script>
+  const GAMES = [
+    { id:1,  name:'Tic-Tac-Toe',    icon:'⭕', color:'#c8d6e5', desc:'Morpion 3×3 contre une IA imparfaite.',                    pts:'1 pt',      ptc:'#4caf50' },
+    { id:2,  name:'Car Racing',     icon:'🏎', color:'#ffab00', desc:'Évite les obstacles sur 3 voies pendant 100 pas.',          pts:'2 pts',     ptc:'#4caf50' },
+    { id:3,  name:'Snake',          icon:'🐍', color:'#00e676', desc:'Mange 40 segments sans te mordre sur une grille 20×20.',   pts:'3 pts',     ptc:'#4caf50' },
+    { id:4,  name:'Rush Hour',      icon:'🚗', color:'#ff6b35', desc:'Déplace les véhicules pour libérer la voiture rouge.',     pts:'4 pts',     ptc:'#ff9800' },
+    { id:5,  name:'Traffic Racing', icon:'🛣', color:'#00d4ff', desc:'Course 3 voies avec trafic non-stationnaire. RL requis.',  pts:'6–7 pts',   ptc:'#ff9800' },
+    { id:6,  name:'Fog Maze',       icon:'🌫', color:'#9c7bea', desc:'Labyrinthe à visibilité partielle (rayon 2 cases).',       pts:'7 pts',     ptc:'#ff9800' },
+    { id:7,  name:'Lava Maze',      icon:'🔥', color:'#ff6b35', desc:'Labyrinthe avec tuiles de lave mortelles.',                pts:'8 pts',     ptc:'#f44336' },
+    { id:8,  name:'Key & Door',     icon:'🔑', color:'#d29922', desc:'Collecte la clé pour ouvrir la porte vers la sortie.',     pts:'9 pts',     ptc:'#f44336' },
+    { id:9,  name:'Lava + Key',     icon:'💀', color:'#f85149', desc:'Combine lave et clé/porte. Le plus difficile.',            pts:'10 pts',    ptc:'#f44336' },
+    { id:10, name:'Moon Lander',    icon:'🚀', color:'#c792ea', desc:'Atterrissage lunaire bruité. Paramètres randomisés.',      pts:'10–11 pts', ptc:'#f44336' },
+  ];
 
-<script src="app.js"></script>
+  const grid = document.getElementById('grid');
+  GAMES.forEach(g => {
+    const card = document.createElement('div');
+    card.className = 'menu-card';
+    card.innerHTML = `
+    <span class="gicon">${g.icon}</span>
+    <div class="gnum">Jeu #${g.id}</div>
+    <div class="gname" style="color:${g.color}">${g.name}</div>
+    <div class="gdesc">${g.desc}</div>
+    <span class="gpts" style="background:${g.ptc}22;color:${g.ptc}">${g.pts}</span>
+  `;
+    card.onclick = () => location.href = `game.html?id=${g.id}`;
+    grid.appendChild(card);
+  });
+</script>
 </body>
 </html>

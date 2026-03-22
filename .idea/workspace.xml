@@ -5,8 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="06465790-15f3-46f9-9939-19d7932024a1" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/IHM/test/game.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/IHM/test/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/IHM/test/App.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/IHM/test/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/IHM/test/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/IHM/test/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/IHM/test/style.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,8 +21,8 @@
       <list>
         <option value="Dockerfile" />
         <option value="Python Script" />
-        <option value="HTML File" />
         <option value="JavaScript File" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
@@ -105,7 +108,7 @@
       <option name="presentableId" value="Default" />
       <updated>1774086941746</updated>
       <workItem from="1774086942768" duration="174000" />
-      <workItem from="1774087251028" duration="56668000" />
+      <workItem from="1774087251028" duration="57218000" />
     </task>
     <servers />
   </component>
