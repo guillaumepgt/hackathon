@@ -5,24 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="06465790-15f3-46f9-9939-19d7932024a1" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/IHM/proxy.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/IHM/test/App.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/IHM/test/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/IHM/test/style.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/eval_snake_q.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hackathon_rl_envs/Partial_Visibility.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hackathon_rl_envs/snake_rl.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/train_ia_jeu9.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/train_jeu6.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/train_jeu9.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/train_snake_q.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hackathon_rl_envs/Key_DoorMaze.py" beforeDir="false" afterPath="$PROJECT_DIR$/hackathon_rl_envs/Key_DoorMaze.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jeu6.py" beforeDir="false" afterPath="$PROJECT_DIR$/jeu6.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train_ia_jeu7.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_ia_jeu7.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train_ia_jeu8.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_ia_jeu8.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train_jeu7.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_jeu7.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train_jeu8.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_jeu8.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/IHM/test/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/IHM/test/App.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -121,7 +105,7 @@
       <option name="presentableId" value="Default" />
       <updated>1774086941746</updated>
       <workItem from="1774086942768" duration="174000" />
-      <workItem from="1774087251028" duration="55497000" />
+      <workItem from="1774087251028" duration="56668000" />
     </task>
     <servers />
   </component>
