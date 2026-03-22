@@ -269,7 +269,6 @@ def run_live(interval: int = 30, only_on_change: bool = False, window_seconds: i
     seen_keys: set[tuple] = set()
     n=0
     while True:
-        n += 1
         try:
             html_doc = fetch_scores_html()
             if html_doc:
@@ -287,6 +286,7 @@ def run_live(interval: int = 30, only_on_change: bool = False, window_seconds: i
             now = time.time()
             if now >= next_log_ts:
                 print("\n" + "=" * 110)
+                n += 1
                 print(f"LOG {n} - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
                 print(f"Historique cumulé: {len(history_rows)} lignes")
                 print("=" * 110)

@@ -11,7 +11,7 @@ TOKEN = "a729a0ed3b8f5ca37e5b8f95a9fa61d0"
 
 GAME_NAME = "Snake"
 TERMINAL = {"win", "lose", "tie", "max_steps"}
-LOG_EVERY = 0  # 0 = aucun log de step (plus rapide)
+LOG_EVERY = 0 
 
 DIRS = {
     "up": (-1, 0),
@@ -19,20 +19,44 @@ DIRS = {
     "left": (0, -1),
     "right": (0, 1),
 }
-OPPOSITE = {"up": "down", "down": "up", "left": "right", "right": "left"}
+OPPOSITE = {
+    "up": "down",
+    "down": "up",
+    "left": "right",
+    "right": "left",
+}
+
+RETRYABLE_STATUS = {408, 429, 500, 502, 503, 504}
+NETWORK_EXCEPTIONS = (
+    requests.exceptions.Timeout,
+    requests.exceptions.ReadTimeout,
+    requests.exceptions.ConnectTimeout,
+    requests.exceptions.ConnectionError,
+    requests.exceptions.ChunkedEncodingError,
+    requests.exceptions.SSLError,
+)
 
 
 class TooManyRequestsError(Exception):
     pass
 
 
-def api_call(fn, *args, retries: int = 4, base_sleep: float = 0.2, **kwargs):
+def api_call(fn, *args, retries: int = 8, base_sleep: float = 0.25, **kwargs):
     for attempt in range(retries):
         try:
             return fn(*args, **kwargs)
+
+        except NETWORK_EXCEPTIONS:
+            if attempt == retries - 1:
+                raise
+            wait_s = min(base_sleep * (2 ** attempt), 4.0)
+            time.sleep(wait_s)
+
         except requests.exceptions.HTTPError as exc:
             status = exc.response.status_code if exc.response is not None else None
-            if status != 429:
+            if status not in RETRYABLE_STATUS:
+                raise
+            if attempt == retries - 1:
                 raise
 
             retry_after = 0.0
@@ -44,10 +68,10 @@ def api_call(fn, *args, retries: int = 4, base_sleep: float = 0.2, **kwargs):
                     except ValueError:
                         retry_after = 0.0
 
-            wait_s = min(max(retry_after, base_sleep * (2 ** attempt)), 1.0)
+            wait_s = min(max(retry_after, base_sleep * (2 ** attempt)), 4.0)
             time.sleep(wait_s)
 
-    raise TooManyRequestsError(f"429 persistant sur {fn.__name__}")
+    raise TooManyRequestsError(f"Erreur persistante sur {fn.__name__}")
 
 
 def norm_pos(p):
@@ -249,7 +273,7 @@ def main():
         URL,
         TOKEN,
         max_calls_per_second=1.0,  # plafond serveur
-        request_timeout=4.0,
+        request_timeout=12.0,      # plus robuste que 4.0
         cleanup_on_exit=False,
     )
     game_id = get_game_id(client)
