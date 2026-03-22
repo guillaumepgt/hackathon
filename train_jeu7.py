@@ -9,7 +9,6 @@ from hackathon_rl_envs.lava_maze import LavaMazeEnv
 
 def make_env(rank):
     def _init():
-        # On instancie l'environnement et on l'équipe d'un Monitor pour les logs
         env = LavaMazeEnv()
         return Monitor(env)
     return _init
@@ -18,20 +17,15 @@ if __name__ == "__main__":
     num_cpu = 18
     print(f"🚀 Lancement du cluster d'entraînement sur {num_cpu} cœurs...")
 
-    # Création des environnements asynchrones
     env = SubprocVecEnv([make_env(i) for i in range(num_cpu)])
 
-    # Normalisation essentielle pour PPO
     env = VecNormalize(env, norm_obs=True, norm_reward=True, clip_obs=10.)
 
-    # Environnement d'évaluation (unique)
     eval_env = DummyVecEnv([lambda: Monitor(LavaMazeEnv())])
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False, clip_obs=10.)
 
-    # L'environnement d'évaluation ne doit que LUIRE les stats, pas les modifier !
     eval_env.training = False
 
-    # Modèle PPO
     model = PPO(
         "MlpPolicy",
         env,
@@ -44,7 +38,6 @@ if __name__ == "__main__":
 
     os.makedirs('./artifacts/lava_maze_ppo/', exist_ok=True)
 
-    # Configuration de l'évaluateur
     eval_freq_per_cpu = max(10000 // num_cpu, 1)
     eval_callback = EvalCallback(
         eval_env,
@@ -58,10 +51,8 @@ if __name__ == "__main__":
     print("🔥 Décollage pour 3 000 000 d'étapes...")
     start_time = time.time()
 
-    # Lancement !
     model.learn(total_timesteps=3000000, callback=eval_callback)
 
-    # Sauvegarde du modèle et du normaliseur
     model.save("artifacts/lava_maze_ppo/final_model")
     env.save("artifacts/lava_maze_ppo/vec_normalize.pkl")
 

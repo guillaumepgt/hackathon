@@ -26,7 +26,6 @@ class KeyDoorEnv(BaseEnv):
         self.rows = len(self.grid)
         self.cols = max(len(row) for row in self.grid)
 
-        # Pad les lignes courtes
         for row in self.grid:
             while len(row) < self.cols:
                 row.append('#')

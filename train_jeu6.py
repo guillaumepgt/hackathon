@@ -5,27 +5,26 @@ from stable_baselines3.common.vec_env import SubprocVecEnv, DummyVecEnv, VecNorm
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.callbacks import EvalCallback
 
-from hackathon_rl_envs.Key_DoorMaze import KeyDoorEnv
+from hackathon_rl_envs.Partial_Visibility import FogMazeEnv
 
 def make_env(rank):
     def _init():
-        env = KeyDoorEnv(seed=int(time.time()) + rank)
+        env = FogMazeEnv(seed=int(time.time()) + rank)
         return Monitor(env)
     return _init
 
 if __name__ == "__main__":
-    print("\n" + "="*60)
-    print("🚀 DÉMARRAGE DE L'ENTRAÎNEMENT KEY-DOOR (18 CŒURS)")
-    print("="*60)
-
+    print("\n🚀 DÉMARRAGE DE L'ENTRAÎNEMENT JEU 6 : BROUILLARD (18 CŒURS)")
     num_cpu = 18
 
     env = SubprocVecEnv([make_env(i) for i in range(num_cpu)])
     env = VecNormalize(env, norm_obs=True, norm_reward=True, clip_obs=10.)
 
-    eval_env = DummyVecEnv([lambda: Monitor(KeyDoorEnv())])
+    eval_env = DummyVecEnv([lambda: Monitor(FogMazeEnv(seed=42))])
     eval_env = VecNormalize(eval_env, norm_obs=True, norm_reward=False, clip_obs=10.)
     eval_env.training = False
+
+    policy_kwargs = dict(net_arch=[256, 256])
 
     model = PPO(
         "MlpPolicy",
@@ -34,29 +33,31 @@ if __name__ == "__main__":
         learning_rate=3e-4,
         n_steps=1024,
         batch_size=256,
-        tensorboard_log="./logs_key_door/"
+        ent_coef=0.02,
+        policy_kwargs=policy_kwargs,
+        tensorboard_log="./logs_fog_maze/"
     )
 
-    os.makedirs('./artifacts/key_door_ppo/', exist_ok=True)
-
+    os.makedirs('./artifacts/fog_maze_ppo/', exist_ok=True)
     eval_freq_per_cpu = max(10000 // num_cpu, 1)
+
     eval_callback = EvalCallback(
         eval_env,
-        best_model_save_path='./artifacts/key_door_ppo/',
-        log_path='./logs_key_door/',
+        best_model_save_path='./artifacts/fog_maze_ppo/',
         eval_freq=eval_freq_per_cpu,
-        deterministic=True,
-        render=False
+        deterministic=True
     )
 
     print("\n🔥 Décollage pour 3 000 000 d'étapes !")
     start_time = time.time()
 
-    model.learn(total_timesteps=3000000, callback=eval_callback)
+    try:
+        model.learn(total_timesteps=3000000, callback=eval_callback)
+    except KeyboardInterrupt:
+        print("\n🛑 Interruption manuelle. Sauvegarde d'urgence...")
 
-    model.save("artifacts/key_door_ppo/final_model")
-    env.save("artifacts/key_door_ppo/vec_normalize.pkl")
+    model.save("artifacts/fog_maze_ppo/final_model")
+    env.save("artifacts/fog_maze_ppo/vec_normalize.pkl")
     env.close()
 
-    elapsed = time.time() - start_time
-    print(f"\n✅ Entraînement terminé en {elapsed/60:.1f} minutes !")
+    print(f"\n✅ Terminé en {(time.time() - start_time)/60:.1f} minutes !")

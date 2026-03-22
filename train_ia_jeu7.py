@@ -5,7 +5,6 @@ from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from hackathon_rl_envs.compat import BaseEnv, spaces
 from players.shared_api_client import GameAPIClient
 
-# Un environnement "coquille vide" juste pour pouvoir charger le fichier de normalisation
 class CoquilleVideEnv(BaseEnv):
     def __init__(self):
         super().__init__()
@@ -18,29 +17,23 @@ class PpoLavaPlayer:
         self.game_id = 7
         self.actions = ["up", "down", "left", "right"]
 
-        print("🧠 Chargement de l'IA depuis le .zip ...")
-        # ⚠️ Vérifie que le chemin correspond bien à là où ton entraînement a sauvegardé
         self.model = PPO.load("artifacts/lava_maze_ppo/final_model.zip")
 
-        # Chargement du normaliseur
         dummy = DummyVecEnv([lambda: CoquilleVideEnv()])
         self.vec_env = VecNormalize.load("artifacts/lava_maze_ppo/vec_normalize.pkl", dummy)
         self.vec_env.training = False
         self.vec_env.norm_reward = False
 
     def get_observation(self, state):
-        """Traduit la grille en 8 capteurs pour l'IA"""
         grid = state["grid"]
         rows, cols = len(grid), len(grid[0])
         x, y = state["player_pos"]
 
-        # Trouver la sortie
         ex, ey = 0, 0
         for r in range(rows):
             for c in range(cols):
                 if grid[r][c] == 'E': ex, ey = c, r
 
-        # Fonction radar interne
         def distance_mur(dx, dy):
             d, cx, cy = 0, x + dx, y + dy
             while 0 <= cy < rows and 0 <= cx < cols and grid[cy][cx] not in ('#', 'L'):
@@ -66,21 +59,17 @@ class PpoLavaPlayer:
         session = self.api.start_game(self.game_id)
         session_id = session["gamesessionid"]
 
-        # L'état est souvent dans la réponse de start_game, sinon on le récupère
         state = session.get("state") or self.api.get_state(session_id)["state"]
 
         while True:
-            # 1. Traduire l'état de l'API pour l'IA
             obs_brut = self.get_observation(state)
             obs_norm = self.vec_env.normalize_obs(np.array([obs_brut], dtype=np.float32))
 
-            # 2. Demander à l'IA quelle touche presser
             action_idx = int(self.model.predict(obs_norm, deterministic=True)[0].item())
             action_str = self.actions[action_idx]
 
             print(f"  -> Position : {state['player_pos']} | Choix IA : {action_str.upper()}")
 
-            # 3. Envoyer l'action au serveur
             result = self.api.act(session_id, action_str)
             status = result.get("status")
 
@@ -98,7 +87,6 @@ if __name__ == "__main__":
     TOKEN = "a729a0ed3b8f5ca37e5b8f95a9fa61d0"
     URL = "https://24hcode2026.plaiades.fr"
 
-    # Initialisation de l'API avec throttle automatique (pour ne pas être banni)
     client = GameAPIClient(server_url=URL, token=TOKEN, max_calls_per_second=0.95)
     bot = PpoLavaPlayer(client)
 
