@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig host="193.168.147.192" id="16e1dd88-1c8b-4980-abd6-b84b8f259871" keyPath="$USER_HOME$/.ssh/Server_PulseHeberg_Bot" port="22" nameFormat="DESCRIPTIVE" username="root" useOpenSSHConfig="true" />
+    </configs>
+  </component>
+</project>

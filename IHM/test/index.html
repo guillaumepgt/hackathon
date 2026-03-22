@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Hackathon 2026</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .menu-wrap { max-width: 760px; margin: 0 auto; padding: 40px 0; }
+    .subtitle { font-size: 13px; color: var(--muted); margin: 6px 0 32px; }
+    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+    .menu-card {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px 18px; cursor: pointer;
+      transition: all .18s; text-align: left;
+    }
+    .menu-card:hover { border-color: var(--accent); background: #00d4ff08; transform: translateY(-2px); }
+    .gicon { font-size: 26px; margin-bottom: 10px; display: block; }
+    .gnum { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 3px; }
+    .gname { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .gdesc { font-size: 11px; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+    .gpts {
+      font-size: 11px; font-weight: 700; padding: 3px 8px;
+      border-radius: 5px; display: inline-block;
+    }
+  </style>
+</head>
+<body>
+<div class="menu-wrap">
+  <h1>◈ Hackathon <span>2026</span></h1>
+  <p class="subtitle">Sélectionne un jeu pour commencer</p>
+  <div class="menu-grid" id="grid"></div>
+</div>
+<script>
+  const GAMES = [
+    { id:1,  name:'Tic-Tac-Toe',    icon:'⭕', color:'#c8d6e5', desc:'Morpion 3×3 contre une IA imparfaite.',                    pts:'1 pt',      ptc:'#4caf50' },
+    { id:2,  name:'Car Racing',     icon:'🏎', color:'#ffab00', desc:'Évite les obstacles sur 3 voies pendant 100 pas.',          pts:'2 pts',     ptc:'#4caf50' },
+    { id:3,  name:'Snake',          icon:'🐍', color:'#00e676', desc:'Mange 40 segments sans te mordre sur une grille 20×20.',   pts:'3 pts',     ptc:'#4caf50' },
+    { id:4,  name:'Rush Hour',      icon:'🚗', color:'#ff6b35', desc:'Déplace les véhicules pour libérer la voiture rouge.',     pts:'4 pts',     ptc:'#ff9800' },
+    { id:5,  name:'Traffic Racing', icon:'🛣', color:'#00d4ff', desc:'Course 3 voies avec trafic non-stationnaire. RL requis.',  pts:'6–7 pts',   ptc:'#ff9800' },
+    { id:6,  name:'Fog Maze',       icon:'🌫', color:'#9c7bea', desc:'Labyrinthe à visibilité partielle (rayon 2 cases).',       pts:'7 pts',     ptc:'#ff9800' },
+    { id:7,  name:'Lava Maze',      icon:'🔥', color:'#ff6b35', desc:'Labyrinthe avec tuiles de lave mortelles.',                pts:'8 pts',     ptc:'#f44336' },
+    { id:8,  name:'Key & Door',     icon:'🔑', color:'#d29922', desc:'Collecte la clé pour ouvrir la porte vers la sortie.',     pts:'9 pts',     ptc:'#f44336' },
+    { id:9,  name:'Lava + Key',     icon:'💀', color:'#f85149', desc:'Combine lave et clé/porte. Le plus difficile.',            pts:'10 pts',    ptc:'#f44336' },
+    { id:10, name:'Moon Lander',    icon:'🚀', color:'#c792ea', desc:'Atterrissage lunaire bruité. Paramètres randomisés.',      pts:'10–11 pts', ptc:'#f44336' },
+  ];
+
+  const grid = document.getElementById('grid');
+  GAMES.forEach(g => {
+    const card = document.createElement('div');
+    card.className = 'menu-card';
+    card.innerHTML = `
+    <span class="gicon">${g.icon}</span>
+    <div class="gnum">Jeu #${g.id}</div>
+    <div class="gname" style="color:${g.color}">${g.name}</div>
+    <div class="gdesc">${g.desc}</div>
+    <span class="gpts" style="background:${g.ptc}22;color:${g.ptc}">${g.pts}</span>
+  `;
+    card.onclick = () => location.href = `game.html?id=${g.id}`;
+    grid.appendChild(card);
+  });
+</script>
+</body>
+</html>
